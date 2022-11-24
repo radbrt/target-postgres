@@ -9,7 +9,7 @@ from singer_sdk import typing as th
 from sqlalchemy.dialects.postgresql import ARRAY, BIGINT, JSONB
 from sqlalchemy.engine import URL
 from sqlalchemy.types import TIMESTAMP
-
+from google.cloud.sql.connector import Connector
 
 class PostgresConnector(SQLConnector):
     """Sets up SQL Alchemy, and other Postgres related stuff."""
@@ -33,24 +33,33 @@ class PostgresConnector(SQLConnector):
         """
         return self.create_sqlalchemy_engine().connect()
 
-    def get_sqlalchemy_url(self, config: dict) -> str:
-        """Generates a SQLAlchemy URL for sqlbuzz.
-
-        Args:
-            config: The configuration for the connector.
+    def create_sqlalchemy_engine(self) -> sqlalchemy.engine.Engine:
+        """Return a new SQLAlchemy engine using the provided config.
+        Developers can generally override just one of the following:
+        `sqlalchemy_engine`, sqlalchemy_url`.
+        Returns:
+            A newly created SQLAlchemy engine object.
         """
-        if config.get("sqlalchemy_url"):
-            return cast(str, config["sqlalchemy_url"])
 
-        else:
-            sqlalchemy_url = URL.create(
-                drivername=config["dialect+driver"],
-                username=config["user"],
-                password=config["password"],
-                host=config["host"],
-                database=config["database"],
+        # initialize Connector object
+        connector = Connector()
+
+        # function to return the database connection object
+        def getconn():
+            conn = connector.connect(
+                self.config["instance_connection_name"],
+                "pg8000",
+                user=self.config["user"],
+                password=self.config["password"],
+                db=self.config["db_name"]
             )
-            return cast(str, sqlalchemy_url)
+            return conn
+
+        # create connection pool with 'creator' argument to our connection object function
+        # pool = sqlalchemy.create_engine("postgresql+pg8000://", creator=getconn)
+
+        return sqlalchemy.create_engine("postgresql+pg8000://", creator=getconn)
+
 
     def truncate_table(self, name):
         """Clear table data."""

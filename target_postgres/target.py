@@ -36,11 +36,9 @@ class TargetPostgres(Target):
         # There's a few ways to do this in JSON Schema but it is schema draft dependent.
         # https://stackoverflow.com/questions/38717933/jsonschema-attribute-conditionally-required
         assert (self.config.get("sqlalchemy_url") is not None) or (
-            self.config.get("host") is not None
-            and self.config.get("port") is not None
-            and self.config.get("user") is not None
+            self.config.get("user") is not None
             and self.config.get("password") is not None
-            and self.config.get("dialect+driver") is not None
+            and self.config.get("instance_connection_name") is not None
         ), (
             "Need either the sqlalchemy_url to be set or host, port, user,"
             + "password, and dialect+driver to be set"

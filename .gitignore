@@ -1,3 +1,5 @@
 smoke-test
 .meltano/**
 .tox/**
+
+config.json
