@@ -26,5 +26,4 @@ plugins:
       kind: password
     - name: instance_connection_name
     - name: db_name
-    - name: host
 
